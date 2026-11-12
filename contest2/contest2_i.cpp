@@ -1,7 +1,7 @@
-#include <iostream>
-#include <vector>
-#include <string>
 #include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
 
 using Matrix = std::vector<std::vector<long long>>;
 
@@ -43,6 +43,9 @@ Matrix PowerMatrix(Matrix base, long long power_value, long long mod) {
 }
 
 void DecrementString(std::string& s) {
+    if (s == "0") {
+        return;
+    }
     int i = static_cast<int>(s.size()) - 1;
     while (i >= 0 && s[i] == '0') {
         s[i] = '9';
@@ -82,22 +85,21 @@ Matrix BuildTransitionMatrix(int m) {
     return transition;
 }
 
-int main() {
-    std::string n_str;
-    int m;
-    long long mod;
+void HandleZeroCase(int m, long long mod) {
+    long long total = 1;
+    for (int i = 0; i < m; ++i) {
+        total = (total * 2) % mod;
+    }
+    std::cout << total << "\n";
+}
 
-    if (!(std::cin >> n_str >> m >> mod)) return 0;
+void ComputeAndPrintResult(std::string n_str, int m, long long mod) {
+    if (n_str == "0") {
+        HandleZeroCase(m, mod);
+        return;
+    }
 
     DecrementString(n_str);
-    if (n_str == "0") {
-        long long total = 1;
-        for (int i = 0; i < m; ++i) {
-            total = (total * 2) % mod;
-        }
-        std::cout << total << "\n";
-        return 0;
-    }
 
     int total_masks = 1 << m;
     Matrix transition = BuildTransitionMatrix(m);
@@ -131,6 +133,16 @@ int main() {
     }
 
     std::cout << total_ways << "\n";
+}
+
+int main() {
+    std::string n_str;
+    int m;
+    long long mod;
+
+    if (!(std::cin >> n_str >> m >> mod)) return 0;
+
+    ComputeAndPrintResult(n_str, m, mod);
 
     return 0;
 }
