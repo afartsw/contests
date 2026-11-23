@@ -59,25 +59,27 @@ void DecrementString(std::string& s) {
     }
 }
 
-Matrix BuildTransitionMatrix(int m) {
-    int total_masks = 1 << m;
+bool HasMonochromeSquare(int prev_mask, int curr_mask, int num_rows) {
+    for (int row = 0; row < num_rows - 1; ++row) {
+        int top_left = (prev_mask >> row) & 1;
+        int bottom_left = (prev_mask >> (row + 1)) & 1;
+        int top_right = (curr_mask >> row) & 1;
+        int bottom_right = (curr_mask >> (row + 1)) & 1;
+
+        if (top_left == bottom_left && bottom_left == top_right && top_right == bottom_right) {
+            return true;
+        }
+    }
+    return false;
+}
+
+Matrix BuildTransitionMatrix(int num_rows) {
+    int total_masks = 1 << num_rows;
     Matrix transition(total_masks, std::vector<long long>(total_masks, 0));
 
     for (int prev_mask = 0; prev_mask < total_masks; ++prev_mask) {
         for (int curr_mask = 0; curr_mask < total_masks; ++curr_mask) {
-            bool flag = true;
-            for (int row = 0; row < m - 1; ++row) {
-                int top_left = (prev_mask >> row) & 1;
-                int bottom_left = (prev_mask >> (row + 1)) & 1;
-                int top_right = (curr_mask >> row) & 1;
-                int bottom_right = (curr_mask >> (row + 1)) & 1;
-
-                if (top_left == bottom_left && bottom_left == top_right && top_right == bottom_right) {
-                    flag = false;
-                    break;
-                }
-            }
-            if (flag) {
+            if (!HasMonochromeSquare(prev_mask, curr_mask, num_rows)) {
                 transition[prev_mask][curr_mask] = 1;
             }
         }
@@ -85,24 +87,23 @@ Matrix BuildTransitionMatrix(int m) {
     return transition;
 }
 
-void HandleZeroCase(int m, long long mod) {
-    long long total = 1;
-    for (int i = 0; i < m; ++i) {
-        total = (total * 2) % mod;
+long long HandleZeroCase(int num_rows, long long mod) {
+    long long total = 1 % mod;
+    for (int i = 0; i < num_rows; ++i) {
+        total = (total << 1) % mod;
     }
-    std::cout << total << "\n";
+    return total;
 }
 
-void ComputeAndPrintResult(std::string n_str, int m, long long mod) {
+long long ComputeResult(std::string n_str, int num_rows, long long mod) {
     if (n_str == "0") {
-        HandleZeroCase(m, mod);
-        return;
+        return HandleZeroCase(num_rows, mod);
     }
 
     DecrementString(n_str);
 
-    int total_masks = 1 << m;
-    Matrix transition = BuildTransitionMatrix(m);
+    int total_masks = 1 << num_rows;
+    Matrix transition = BuildTransitionMatrix(num_rows);
 
     Matrix result_matrix(total_masks, std::vector<long long>(total_masks, 0));
     for (int i = 0; i < total_masks; ++i) {
@@ -132,17 +133,22 @@ void ComputeAndPrintResult(std::string n_str, int m, long long mod) {
         total_ways = (total_ways + final_dp[i]) % mod;
     }
 
-    std::cout << total_ways << "\n";
+    return total_ways;
+}
+
+void PrintResult(long long answer) {
+    std::cout << answer << "\n";
 }
 
 int main() {
     std::string n_str;
-    int m;
+    int num_rows;
     long long mod;
 
-    if (!(std::cin >> n_str >> m >> mod)) return 0;
+    if (!(std::cin >> n_str >> num_rows >> mod)) return 0;
 
-    ComputeAndPrintResult(n_str, m, mod);
+    long long answer = ComputeResult(n_str, num_rows, mod);
+    PrintResult(answer);
 
     return 0;
 }
